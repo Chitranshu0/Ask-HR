@@ -1,2 +1,7 @@
 pandas>=2.0
 Faker>=18.0.0
+langchain
+langchain_groq
+langgraph
+fastapi
+dotenv
