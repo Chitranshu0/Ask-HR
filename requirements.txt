@@ -1,7 +1,13 @@
 pandas>=2.0
 Faker>=18.0.0
 langchain
+langchain_community
 langchain_groq
 langgraph
+langchain_huggingface
+sentence-transformers
+Chroma
+chromadb
 fastapi
 dotenv
+ipykernel
