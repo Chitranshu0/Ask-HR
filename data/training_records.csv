@@ -1,0 +1,81 @@
+employee_id,training,provider,completed_on
+E0012,Kubernetes for Developers,Udemy,2025-05-29
+E0012,Effective Code Reviews,Coursera,2026-03-16
+E0001,LangGraph Workshop,Udemy,2025-11-15
+E0015,Advanced PyTorch,Udemy,2024-05-25
+E0010,Kubernetes for Developers,Coursera,2025-09-10
+E0031,Data Pipeline Design with Airflow,Internal,2026-06-01
+E0030,Kubernetes for Developers,Coursera,2026-02-21
+E0019,Kubernetes for Developers,Coursera,2025-09-27
+E0018,Data Pipeline Design with Airflow,Coursera,2026-02-20
+E0024,LangGraph Workshop,Udemy,2025-12-27
+E0014,LangGraph Workshop,Coursera,2026-03-27
+E0032,Advanced PyTorch,Udemy,2024-11-07
+E0015,Effective Code Reviews,Udemy,2025-09-20
+E0022,LangGraph Workshop,Internal,2024-11-24
+E0013,Data Pipeline Design with Airflow,Coursera,2024-06-05
+E0003,Advanced PyTorch,Coursera,2026-04-18
+E0010,Data Pipeline Design with Airflow,Internal,2025-06-02
+E0008,LangGraph Workshop,Coursera,2025-01-30
+E0032,Data Pipeline Design with Airflow,Udemy,2025-04-27
+E0027,Advanced PyTorch,Coursera,2024-11-10
+E0010,LangGraph Workshop,Internal,2026-04-20
+E0026,Kubernetes for Developers,Internal,2025-09-08
+E0002,Data Pipeline Design with Airflow,Coursera,2025-09-23
+E0022,LangGraph Workshop,Internal,2025-09-18
+E0030,Advanced PyTorch,Coursera,2024-07-17
+E0032,Data Pipeline Design with Airflow,Coursera,2024-08-27
+E0020,LangGraph Workshop,Internal,2025-04-04
+E0006,Effective Code Reviews,Internal,2025-02-08
+E0017,Advanced PyTorch,Internal,2024-05-24
+E0008,LangGraph Workshop,Udemy,2025-06-16
+E0014,LangGraph Workshop,Internal,2025-06-12
+E0032,Data Pipeline Design with Airflow,Udemy,2024-12-13
+E0025,Advanced PyTorch,Udemy,2024-08-18
+E0019,Kubernetes for Developers,Internal,2024-12-06
+E0028,Effective Code Reviews,Coursera,2025-07-30
+E0008,Kubernetes for Developers,Udemy,2025-12-27
+E0004,Effective Code Reviews,Udemy,2025-06-07
+E0032,Data Pipeline Design with Airflow,Udemy,2024-04-29
+E0017,Kubernetes for Developers,Coursera,2024-08-04
+E0021,Data Pipeline Design with Airflow,Internal,2024-12-15
+E0014,Data Pipeline Design with Airflow,Udemy,2025-04-07
+E0008,LangGraph Workshop,Internal,2025-10-07
+E0007,Advanced PyTorch,Udemy,2025-06-21
+E0006,Data Pipeline Design with Airflow,Udemy,2024-05-13
+E0031,Effective Code Reviews,Internal,2026-01-06
+E0016,LangGraph Workshop,Udemy,2025-01-21
+E0013,Advanced PyTorch,Internal,2025-07-09
+E0001,Effective Code Reviews,Internal,2024-05-22
+E0010,Advanced PyTorch,Internal,2026-02-01
+E0019,Advanced PyTorch,Internal,2025-05-14
+E0028,LangGraph Workshop,Udemy,2026-03-01
+E0006,Effective Code Reviews,Internal,2026-05-12
+E0001,Effective Code Reviews,Coursera,2024-11-11
+E0004,LangGraph Workshop,Udemy,2024-12-07
+E0019,Advanced PyTorch,Internal,2025-11-03
+E0025,Kubernetes for Developers,Udemy,2026-02-24
+E0009,Kubernetes for Developers,Internal,2025-06-06
+E0003,Effective Code Reviews,Udemy,2025-01-04
+E0029,Data Pipeline Design with Airflow,Coursera,2024-11-10
+E0032,Kubernetes for Developers,Internal,2025-05-02
+E0029,LangGraph Workshop,Coursera,2024-09-06
+E0020,Data Pipeline Design with Airflow,Coursera,2024-07-13
+E0021,Advanced PyTorch,Internal,2026-06-23
+E0009,Effective Code Reviews,Coursera,2025-02-01
+E0024,Advanced PyTorch,Coursera,2024-07-12
+E0009,Kubernetes for Developers,Coursera,2024-05-11
+E0004,Data Pipeline Design with Airflow,Udemy,2025-11-21
+E0004,Effective Code Reviews,Internal,2026-03-17
+E0009,Advanced PyTorch,Coursera,2026-06-07
+E0021,LangGraph Workshop,Udemy,2026-02-20
+E0031,Advanced PyTorch,Coursera,2024-04-20
+E0013,LangGraph Workshop,Coursera,2025-10-07
+E0011,Data Pipeline Design with Airflow,Coursera,2025-04-17
+E0003,Kubernetes for Developers,Internal,2025-05-07
+E0030,LangGraph Workshop,Internal,2024-10-20
+E0003,Kubernetes for Developers,Udemy,2025-05-22
+E0018,Kubernetes for Developers,Coursera,2025-08-16
+E0007,Data Pipeline Design with Airflow,Internal,2024-10-28
+E0015,Data Pipeline Design with Airflow,Internal,2024-10-02
+E0016,Effective Code Reviews,Coursera,2024-07-28

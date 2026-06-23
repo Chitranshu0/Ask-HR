@@ -1,0 +1,5 @@
+project_id,name,department,description,status,project_manager
+P001,AskHR,"AI & Generative, Backend","Agentic AI HR Assistant using LangGraph, RAG, FastAPI, PostgreSQL, and React.",Active,Chitranshu Sanket
+P002,MedAssist AI,AI & ML,Healthcare AI platform for medical report analysis and patient assistance.,Active,Chitranshu Sanket
+P003,CloudOps360,Cloud & DevOps,Cloud monitoring and infrastructure automation platform.,Active,Yoshita Agarwal
+P004,RetailIQ,"Data Engineering, MERN",Retail analytics dashboard for inventory forecasting and sales intelligence.,Active,Kamala Biswas

@@ -1,0 +1,124 @@
+employee_id,asset_type,asset_tag
+E0001,Laptop,LAP-8608
+E0001,VPN Access,VPN-563
+E0001,Software License,Adobe
+E0002,Laptop,LAP-7317
+E0002,VPN Access,VPN-529
+E0002,Monitor,MON-3284
+E0002,Software License,JetBrains
+E0003,Laptop,LAP-7249
+E0003,VPN Access,VPN-991
+E0003,Monitor,MON-7544
+E0003,Software License,JetBrains
+E0004,Laptop,LAP-1228
+E0004,VPN Access,VPN-544
+E0004,Monitor,MON-3830
+E0004,Software License,MS365
+E0005,Laptop,LAP-4013
+E0005,VPN Access,VPN-322
+E0005,Software License,JetBrains
+E0006,Laptop,LAP-8737
+E0006,VPN Access,VPN-253
+E0006,Software License,MS365
+E0007,Laptop,LAP-1355
+E0007,VPN Access,VPN-609
+E0007,Monitor,MON-5972
+E0007,Software License,Adobe
+E0008,Laptop,LAP-5549
+E0008,VPN Access,VPN-333
+E0008,Software License,Adobe
+E0009,Laptop,LAP-9177
+E0009,VPN Access,VPN-543
+E0009,Monitor,MON-3618
+E0009,Software License,JetBrains
+E0010,Laptop,LAP-1979
+E0010,VPN Access,VPN-461
+E0010,Monitor,MON-2096
+E0010,Software License,JetBrains
+E0011,Laptop,LAP-8810
+E0011,VPN Access,VPN-722
+E0011,Software License,MS365
+E0012,Laptop,LAP-9499
+E0012,VPN Access,VPN-606
+E0012,Monitor,MON-7821
+E0012,Software License,JetBrains
+E0013,Laptop,LAP-1212
+E0013,VPN Access,VPN-415
+E0013,Monitor,MON-6547
+E0013,Software License,Adobe
+E0014,Laptop,LAP-6089
+E0014,VPN Access,VPN-800
+E0014,Monitor,MON-2996
+E0014,Software License,Adobe
+E0015,Laptop,LAP-3120
+E0015,VPN Access,VPN-642
+E0015,Software License,Adobe
+E0016,Laptop,LAP-7117
+E0016,VPN Access,VPN-926
+E0016,Monitor,MON-3099
+E0016,Software License,JetBrains
+E0017,Laptop,LAP-8758
+E0017,VPN Access,VPN-164
+E0017,Software License,JetBrains
+E0018,Laptop,LAP-7832
+E0018,VPN Access,VPN-352
+E0018,Software License,JetBrains
+E0019,Laptop,LAP-4824
+E0019,VPN Access,VPN-992
+E0019,Monitor,MON-8801
+E0019,Software License,JetBrains
+E0020,Laptop,LAP-6582
+E0020,VPN Access,VPN-691
+E0020,Monitor,MON-4184
+E0020,Software License,MS365
+E0021,Laptop,LAP-6272
+E0021,VPN Access,VPN-900
+E0021,Monitor,MON-4750
+E0021,Software License,Adobe
+E0022,Laptop,LAP-4883
+E0022,VPN Access,VPN-932
+E0022,Monitor,MON-9005
+E0022,Software License,Adobe
+E0023,Laptop,LAP-8696
+E0023,VPN Access,VPN-119
+E0023,Monitor,MON-2566
+E0023,Software License,JetBrains
+E0024,Laptop,LAP-3430
+E0024,VPN Access,VPN-738
+E0024,Monitor,MON-9670
+E0024,Software License,JetBrains
+E0025,Laptop,LAP-8580
+E0025,VPN Access,VPN-717
+E0025,Monitor,MON-5358
+E0025,Software License,MS365
+E0026,Laptop,LAP-8364
+E0026,VPN Access,VPN-498
+E0026,Monitor,MON-5525
+E0026,Software License,Adobe
+E0027,Laptop,LAP-3344
+E0027,VPN Access,VPN-472
+E0027,Monitor,MON-1967
+E0027,Software License,JetBrains
+E0028,Laptop,LAP-5040
+E0028,VPN Access,VPN-328
+E0028,Monitor,MON-6361
+E0028,Software License,JetBrains
+E0029,Laptop,LAP-8906
+E0029,VPN Access,VPN-675
+E0029,Software License,JetBrains
+E0030,Laptop,LAP-6243
+E0030,VPN Access,VPN-596
+E0030,Monitor,MON-9786
+E0030,Software License,MS365
+E0031,Laptop,LAP-4083
+E0031,VPN Access,VPN-711
+E0031,Monitor,MON-5843
+E0031,Software License,Adobe
+E0032,Laptop,LAP-1992
+E0032,VPN Access,VPN-853
+E0032,Monitor,MON-9577
+E0032,Software License,Adobe
+E0033,Laptop,LAP-5627
+E0033,VPN Access,VPN-354
+E0033,Monitor,MON-7930
+E0033,Software License,Adobe

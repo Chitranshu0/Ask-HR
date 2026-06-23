@@ -1,0 +1,35 @@
+project_id,employee_id,role,allocation_pct
+P003,E0003,HR Director,75
+P001,E0004,HR Executive,75
+P002,E0005,Talent Acquisition Specialist,50
+P002,E0006,Finance Manager,25
+P003,E0008,AI Team Lead,25
+P003,E0010,AI Engineer,50
+P004,E0011,Machine Learning Engineer,50
+P002,E0012,Data Scientist,100
+P003,E0013,MLOps Engineer,25
+P004,E0014,GenAI Lead,25
+P002,E0015,GenAI Engineer,25
+P002,E0016,GenAI Engineer,50
+P001,E0017,Prompt Engineer,75
+P002,E0018,Data Engineering Lead,25
+P004,E0018,Data Engineering Lead,25
+P001,E0019,Data Engineer,75
+P004,E0019,Data Engineer,50
+P001,E0020,Data Engineer,100
+P003,E0021,Backend Lead,50
+P001,E0021,Backend Lead,25
+P003,E0022,Python Backend Developer,50
+P001,E0023,Java Backend Developer,25
+P002,E0023,Java Backend Developer,75
+P003,E0024,MERN Lead,25
+P004,E0025,MERN Stack Developer,100
+P004,E0026,Frontend React Developer,50
+P004,E0027,DevOps Lead,50
+P003,E0028,DevOps Engineer,75
+P001,E0028,DevOps Engineer,100
+P002,E0029,Cloud Engineer,25
+P004,E0030,QA Lead,50
+P004,E0031,QA Engineer,100
+P002,E0032,Sales Manager,50
+P001,E0033,Business Development Executive,50

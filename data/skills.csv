@@ -1,0 +1,112 @@
+employee_id,skill
+E0001,Leadership
+E0001,Strategy
+E0002,LangGraph
+E0002,Kubernetes
+E0002,LangChain
+E0003,Python
+E0003,PyTorch
+E0003,OpenAI API
+E0004,Spark
+E0004,Spring Boot
+E0004,Next.js
+E0005,SQL
+E0005,Airflow
+E0005,LangGraph
+E0006,PostgreSQL
+E0006,TypeScript
+E0006,Airflow
+E0007,React
+E0007,Kafka
+E0007,AWS
+E0008,SQL
+E0008,LangChain
+E0009,Spark
+E0009,SQL
+E0009,Hugging Face
+E0009,PyTorch
+E0010,SQL
+E0010,PyTorch
+E0010,Airflow
+E0010,LangChain
+E0010,PostgreSQL
+E0010,Kafka
+E0011,Python
+E0011,LangChain
+E0011,PostgreSQL
+E0011,Hugging Face
+E0012,SQL
+E0012,Spark
+E0012,OpenAI API
+E0013,Airflow
+E0013,LangGraph
+E0013,Kafka
+E0013,OpenAI API
+E0013,PostgreSQL
+E0013,PyTorch
+E0014,PyTorch
+E0014,SQL
+E0015,OpenAI API
+E0015,Kafka
+E0015,Spark
+E0015,Airflow
+E0015,LangGraph
+E0016,TensorFlow
+E0016,LangGraph
+E0016,OpenAI API
+E0016,PyTorch
+E0017,TensorFlow
+E0017,SQL
+E0017,LangGraph
+E0017,Airflow
+E0017,LangChain
+E0017,PostgreSQL
+E0018,Java
+E0018,Python
+E0018,LangChain
+E0019,PyTorch
+E0019,Kubernetes
+E0019,Java
+E0020,React
+E0020,Hugging Face
+E0020,Airflow
+E0021,Java
+E0021,Spring Boot
+E0021,Django
+E0021,REST APIs
+E0022,REST APIs
+E0022,Django
+E0022,FastAPI
+E0023,Spring Boot
+E0023,FastAPI
+E0024,TypeScript
+E0024,Next.js
+E0025,Django
+E0025,React
+E0026,FastAPI
+E0026,Java
+E0027,Kubernetes
+E0027,Azure
+E0027,CI/CD
+E0027,AWS
+E0027,Terraform
+E0027,Docker
+E0028,CI/CD
+E0028,Terraform
+E0029,Azure
+E0029,Kubernetes
+E0029,AWS
+E0029,Terraform
+E0029,CI/CD
+E0030,Django
+E0030,Docker
+E0030,Kubernetes
+E0031,TensorFlow
+E0031,Next.js
+E0031,Kubernetes
+E0032,TensorFlow
+E0032,REST APIs
+E0032,PyTorch
+E0033,LangChain
+E0033,Next.js
+E0033,Spark
