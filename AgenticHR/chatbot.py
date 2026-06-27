@@ -2,6 +2,7 @@
 This page is set-up for the agentic chatbot feature.
 """
 
+import os
 from typing import TypedDict, Annotated
 
 from dotenv import load_dotenv
@@ -12,12 +13,13 @@ from langchain_core.tools import tool
 from langchain_groq import ChatGroq
 
 from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
+from langchain_chroma import Chroma   # pip install -U langchain-chroma
+
+from langgraph.checkpoint.postgres import PostgresSaver
 
 from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
 from langgraph.prebuilt import ToolNode, tools_condition
-
 
 load_dotenv()
 
@@ -49,7 +51,7 @@ embeddings = HuggingFaceEmbeddings(
 )
 
 vector_db = Chroma(
-    persist_directory=r"RAG_pipeline/PolicyVB",
+    persist_directory="RAG_pipeline/PolicyVB",
     embedding_function=embeddings
 )
 
@@ -72,8 +74,8 @@ def retriever_tool(
         search_type=search_type,
         search_kwargs={
             "k": k,
-            "fetch_k": 50
-        }
+            "fetch_k": 50,
+        },
     )
 
     docs = retriever.invoke(query)
@@ -81,15 +83,11 @@ def retriever_tool(
     if not docs:
         return "No relevant documents found."
 
-    context = "\n\n".join(
-        [
-            f"Source: {doc.metadata.get('source', 'Unknown')}\n"
-            f"Content: {doc.page_content}"
-            for doc in docs
-        ]
+    return "\n\n".join(
+        f"Source: {doc.metadata.get('source','Unknown')}\n"
+        f"Content: {doc.page_content}"
+        for doc in docs
     )
-
-    return context
 
 
 ##################################################
@@ -108,7 +106,8 @@ tool_node = ToolNode(tools)
 ##################################################
 
 def chat_node(state: ChatState):
-    response = llm_with_tools.invoke(state["messages"])
+
+    response = llm.invoke(state["messages"])
 
     return {
         "messages": [response]
@@ -116,10 +115,20 @@ def chat_node(state: ChatState):
 
 
 ##################################################
+# Database
+##################################################
+
+DB_URI = os.getenv(
+    "DATABASE_URL",
+    "postgresql://postgres:postgres@localhost:5442/langgraph"
+)
+
+
+##################################################
 # Graph
 ##################################################
 
-def build_graph():
+def build_graph(checkpointer):
 
     graph = StateGraph(ChatState)
 
@@ -130,32 +139,59 @@ def build_graph():
 
     graph.add_conditional_edges(
         "chat_node",
-        tools_condition
+        tools_condition,
     )
 
-    graph.add_edge("tools", "chat_node")
+    graph.add_edge(
+        "tools",
+        "chat_node",
+    )
 
-    return graph.compile()
+    return graph.compile(
+        checkpointer=checkpointer
+    )
 
 
 ##################################################
-# Testing
+# Main
 ##################################################
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
 
-#     chatbot = build_graph()
+    config = {
+        "configurable": {
+            "thread_id": "user_001",
+            "checkpoint_ns": "askhr"
+        }
+    }
 
-#     result = chatbot.invoke(
-#         {
-#             "messages": [
-#                 HumanMessage(
-#                     content="What is the leave policy?"
-#                 )
-#             ]
-#         }
-#     )
+    with PostgresSaver.from_conn_string(DB_URI) as checkpointer:
 
-#     for msg in result["messages"]:
-#         print("\n")
-#         print(msg)
+        print("Connected to PostgreSQL...")
+
+        # Safe to call every startup
+        checkpointer.setup()
+
+        print("Checkpoint tables are ready.")
+
+        chatbot = build_graph(checkpointer)
+
+        print("\nAI: How can I help you today?\n")
+
+        while True:
+
+            user_input = input("You: ")
+
+            if user_input.lower() in ("quit", "exit", "break"):
+                break
+
+            result = chatbot.invoke(
+                {
+                    "messages": [
+                        HumanMessage(content=user_input)
+                    ]
+                },
+                config=config
+            )
+
+            print("\nAI:", result["messages"][-1].content)
