@@ -5,6 +5,8 @@ langchain_community
 langchain_groq
 langgraph
 langchain_huggingface
+langgraph-checkpoint-postgres
+psycopg[binary]
 sentence-transformers
 Chroma
 chromadb
