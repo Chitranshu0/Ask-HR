@@ -1,3 +1,4 @@
+import os
 import asyncio
 
 from langchain_huggingface import HuggingFaceEmbeddings
@@ -22,7 +23,7 @@ def Retriever(query, printer= False, k=5, typie='mmr')->str:
 
     if printer:
         for i in result:
-            print("Source: ", i.metadata['source'].split('\\')[-1].split('.')[0])
+            print("Source: ", i.metadata['source'].split('\\')[-1].split('.')[0].split('/')[-1])
             print()
             print("Content: ",i.page_content)
             print()
@@ -31,9 +32,9 @@ def Retriever(query, printer= False, k=5, typie='mmr')->str:
 
     context = "\n\n".join(
         [
-            f"Source: {doc.metadata['source'].split('\\')[-1].split('.')[0]}\nContent: {doc.page_content}"
-            for doc in result
-        ]
+        f"Source: {os.path.splitext(os.path.basename(doc.metadata['source']))[0].split()}\nContent: {doc.page_content}"
+        for doc in result
+    ]
     )
 
     return context
