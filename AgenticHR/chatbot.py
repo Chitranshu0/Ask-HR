@@ -109,7 +109,6 @@ tool_node = ToolNode(tools)
 ##################################################
 
 def chat_node(state: ChatState):
-    # Fixed: Changed from llm.invoke to llm_with_tools.invoke to allow tool routing
     response = llm_with_tools.invoke(state["messages"])
 
     return {
@@ -133,67 +132,57 @@ def chat_node(state: ChatState):
 ##################################################
 
 def build_graph(checkpointer):
-
     graph = StateGraph(ChatState)
 
     graph.add_node("chat_node", chat_node)
     graph.add_node("tools", tool_node)
 
     graph.add_edge(START, "chat_node")
+    graph.add_conditional_edges("chat_node", tools_condition)
+    graph.add_edge("tools", "chat_node")
 
-    graph.add_conditional_edges(
-        "chat_node",
-        tools_condition,
-    )
-
-    graph.add_edge(
-        "tools",
-        "chat_node",
-    )
-
+    # FIX: Pass the raw instance directly here
     return graph.compile(
         checkpointer=checkpointer
     )
-
 
 ##################################################
 # Main Execution
 ##################################################
 
-if __name__ == "__main__":
+# if __name__ == "__main__":
 
-    config = {
-        "configurable": {
-            "thread_id": "user_001",
-            "checkpoint_ns": "askhr"
-        }
-    }
+#     config = {
+#         "configurable": {
+#             "thread_id": "user_001",
+#             "checkpoint_ns": "askhr"
+#         }
+#     }
 
-    # CURRENT SQLITE CONFIGURATION (In-Memory Saver)
-    with SqliteSaver.from_conn_string(":memory:") as checkpointer:
+#     with SqliteSaver.from_conn_string(":memory:") as checkpointer:
+    
+#         print("Connected to In-Memory SQLite...")
         
-        print("Connected to In-Memory SQLite...")
-        
-        chatbot = build_graph(checkpointer)
+#         chatbot = build_graph(checkpointer)
 
-        print("\nAI: How can I help you today?\n")
+#         print("\nAI: How can I help you today?\n")
 
-        while True:
-            user_input = input("You: ")
+#         while True:
+#             user_input = input("You: ")
 
-            if user_input.lower() in ("quit", "exit", "break"):
-                break
+#             if user_input.lower() in ("quit", "exit", "break"):
+#                 break
 
-            result = chatbot.invoke(
-                {
-                    "messages": [
-                        HumanMessage(content=user_input)
-                    ]
-                },
-                config=config
-            )
+#             result = chatbot.invoke(
+#                 {
+#                     "messages": [
+#                         HumanMessage(content=user_input)
+#                     ]
+#                 },
+#                 config=config
+#             )
 
-            print("\nAI:", result["messages"][-1].content)
+#             print("\nAI:", result["messages"][-1].content)
 
     # FOR FUTURE POSTGRES USE:
     # with PostgresSaver.from_conn_string(DB_URI) as checkpointer:
