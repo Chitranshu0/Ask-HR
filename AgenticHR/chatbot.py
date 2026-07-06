@@ -15,7 +15,9 @@ from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma   # pip install -U langchain-chroma
 
-from langgraph.checkpoint.postgres import PostgresSaver
+# FOR FUTURE POSTGRES USE:
+# from langgraph.checkpoint.postgres import PostgresSaver
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 from langgraph.graph import StateGraph, START
 from langgraph.graph.message import add_messages
@@ -96,6 +98,7 @@ def retriever_tool(
 
 tools = [retriever_tool]
 
+# Fixed: Ensuring the LLM actually knows about the tools
 llm_with_tools = llm.bind_tools(tools)
 
 tool_node = ToolNode(tools)
@@ -106,8 +109,8 @@ tool_node = ToolNode(tools)
 ##################################################
 
 def chat_node(state: ChatState):
-
-    response = llm.invoke(state["messages"])
+    # Fixed: Changed from llm.invoke to llm_with_tools.invoke to allow tool routing
+    response = llm_with_tools.invoke(state["messages"])
 
     return {
         "messages": [response]
@@ -115,13 +118,14 @@ def chat_node(state: ChatState):
 
 
 ##################################################
-# Database
+# Database Configuration
 ##################################################
 
-DB_URI = os.getenv(
-    "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5442/langgraph"
-)
+# FOR FUTURE POSTGRES USE:
+# DB_URI = os.getenv(
+#     "DATABASE_URL",
+#     "postgresql://postgres:postgres@localhost:5442/langgraph"
+# )
 
 
 ##################################################
@@ -153,7 +157,7 @@ def build_graph(checkpointer):
 
 
 ##################################################
-# Main
+# Main Execution
 ##################################################
 
 if __name__ == "__main__":
@@ -165,21 +169,16 @@ if __name__ == "__main__":
         }
     }
 
-    with PostgresSaver.from_conn_string(DB_URI) as checkpointer:
-
-        print("Connected to PostgreSQL...")
-
-        # Safe to call every startup
-        checkpointer.setup()
-
-        print("Checkpoint tables are ready.")
-
+    # CURRENT SQLITE CONFIGURATION (In-Memory Saver)
+    with SqliteSaver.from_conn_string(":memory:") as checkpointer:
+        
+        print("Connected to In-Memory SQLite...")
+        
         chatbot = build_graph(checkpointer)
 
         print("\nAI: How can I help you today?\n")
 
         while True:
-
             user_input = input("You: ")
 
             if user_input.lower() in ("quit", "exit", "break"):
@@ -195,3 +194,11 @@ if __name__ == "__main__":
             )
 
             print("\nAI:", result["messages"][-1].content)
+
+    # FOR FUTURE POSTGRES USE:
+    # with PostgresSaver.from_conn_string(DB_URI) as checkpointer:
+    #     print("Connected to PostgreSQL...")
+    #     checkpointer.setup()
+    #     print("Checkpoint tables are ready.")
+    #     chatbot = build_graph(checkpointer)
+    #     ...
