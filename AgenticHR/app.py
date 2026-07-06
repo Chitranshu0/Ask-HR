@@ -39,110 +39,97 @@ st.markdown(
         border-right: 1px solid rgba(255,255,255,0.08);
     }
     .app-header {
-        margin-bottom: 1rem;
-        padding: 1rem 1.2rem;
-        border-radius: 18px;
-        background: rgba(255,255,255,0.03);
+        margin-bottom: 1.25rem;
+        padding: 0.95rem 1.3rem;
+        border-radius: 14px;
+        background: rgba(255,255,255,0.025);
         border: 1px solid rgba(255,255,255,0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+    }
+    .app-header .title-block h2 {
+        margin: 0;
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #f1f5f9;
+        letter-spacing: -0.01em;
+    }
+    .app-header .title-block .subtitle {
+        color: #8b95a7;
+        font-size: 0.8rem;
+        margin-top: 0.15rem;
     }
     .status-pill {
         display: inline-flex;
         align-items: center;
-        gap: 0.35rem;
-        padding: 0.35rem 0.7rem;
+        gap: 0.4rem;
+        padding: 0.3rem 0.7rem;
         border-radius: 999px;
-        background: rgba(34, 197, 94, 0.15);
+        background: rgba(34, 197, 94, 0.1);
         color: #86efac;
-        font-size: 0.85rem;
-        border: 1px solid rgba(34, 197, 94, 0.25);
+        font-size: 0.78rem;
+        font-weight: 500;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    .status-pill .dot {
+        width: 0.4rem;
+        height: 0.4rem;
+        border-radius: 999px;
+        background: #4ade80;
+    }
+    div[data-testid="stChatMessage"] {
+        background: transparent;
+        padding: 0.35rem 0;
+    }
+    div[data-testid="stChatMessageContent"] {
+        border-radius: 16px;
+        padding: 0.7rem 1rem;
+    }
+    .msg-meta {
+        color: #7c8698;
+        font-size: 0.72rem;
+        margin-top: 0.3rem;
     }
     .chat-shell {
         padding: 0.25rem 0.05rem 0.2rem;
         overflow-y: auto;
         max-height: 72vh;
     }
-    .msg-row {
+    .tool-pill-row {
         display: flex;
-        gap: 0.8rem;
-        margin: 0.75rem 0;
-        align-items: flex-start;
+        align-items: center;
+        gap: 0.6rem;
+        margin: 0.6rem 0 0.35rem 2.9rem;
     }
-    .msg-row.user {
-        justify-content: flex-end;
-    }
-    .avatar {
-        width: 2.1rem;
-        height: 2.1rem;
-        border-radius: 999px;
+    .tool-pill {
         display: inline-flex;
         align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        flex-shrink: 0;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.25);
+        gap: 0.45rem;
+        padding: 0.35rem 0.75rem;
+        border-radius: 999px;
+        background: rgba(59, 130, 246, 0.12);
+        border: 1px solid rgba(96, 165, 250, 0.28);
+        color: #bfdbfe;
+        font-size: 0.82rem;
+        font-weight: 600;
+        white-space: nowrap;
     }
-    .avatar.ai {
-        background: linear-gradient(135deg, #3b82f6, #6366f1);
-        color: white;
+    .tool-pill .dot {
+        width: 0.4rem;
+        height: 0.4rem;
+        border-radius: 999px;
+        background: #60a5fa;
     }
-    .avatar.user {
-        background: linear-gradient(135deg, #0f766e, #14b8a6);
-        color: white;
+    .tool-pill.running .dot {
+        background: #fbbf24;
+        animation: pulse 1s infinite ease-in-out;
     }
-    .bubble {
-        max-width: min(78%, 760px);
-        padding: 0.9rem 1rem;
-        border-radius: 18px;
-        line-height: 1.55;
-        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.16);
-        border: 1px solid rgba(255,255,255,0.06);
-    }
-    .bubble.user {
-        background: linear-gradient(135deg, #2563eb, #1d4ed8);
-        color: white;
-        border-bottom-right-radius: 6px;
-    }
-    .bubble.ai {
-        background: rgba(255,255,255,0.04);
-        color: #f8fafc;
-        border-bottom-left-radius: 6px;
-    }
-    .bubble.tool {
-        background: rgba(59, 130, 246, 0.11);
-        border: 1px solid rgba(96, 165, 250, 0.26);
-        color: #e2e8f0;
-    }
-    .meta-line {
-        color: #94a3b8;
-        font-size: 0.78rem;
-        margin-top: 0.35rem;
-        display: flex;
-        gap: 0.6rem;
-        align-items: center;
-    }
-    .tool-card {
-        border: 1px solid rgba(96, 165, 250, 0.25);
-        border-radius: 16px;
-        padding: 0.9rem 1rem;
-        margin: 0.75rem 0;
-        background: linear-gradient(135deg, rgba(59,130,246,0.16), rgba(15,23,42,0.2));
-        box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
-    }
-    .tool-card h4 {
-        margin: 0 0 0.25rem 0;
-        color: #bae6fd;
-        font-size: 1rem;
-    }
-    .tool-card .status {
-        color: #86efac;
-        font-size: 0.9rem;
-        margin-bottom: 0.3rem;
-    }
-    .tool-card .query {
-        color: #cbd5e1;
-        font-size: 0.92rem;
-        margin-top: 0.3rem;
-        white-space: pre-wrap;
+    .tool-pill .sep {
+        color: rgba(191, 219, 254, 0.4);
     }
     .source-card {
         border-left: 3px solid #60a5fa;
@@ -181,6 +168,16 @@ st.markdown(
     @keyframes pulse {
         0%, 80%, 100% { transform: scale(0.8); opacity: 0.55; }
         40% { transform: scale(1); opacity: 1; }
+    }
+    div[data-testid="stExpander"] {
+        margin: 0.15rem 0 0.75rem 2.9rem;
+        border: 1px solid rgba(96, 165, 250, 0.18);
+        border-radius: 12px;
+        background: rgba(15, 23, 42, 0.35);
+    }
+    div[data-testid="stExpander"] summary {
+        font-size: 0.82rem;
+        color: #93c5fd;
     }
 </style>
 """,
@@ -302,89 +299,68 @@ def parse_tool_output(tool_text: str) -> List[Dict[str, Any]]:
     return docs
 
 
-def render_message(message: Any, thread_id: str, index: int) -> None:
-    if isinstance(message, HumanMessage):
-        content = html.escape(get_message_text(message))
-        st.markdown(
-            f"""
-            <div class="msg-row user">
-                <div class="bubble user">{content}</div>
-                <div class="avatar user">You</div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        return
-
-    if isinstance(message, ToolMessage):
-        content = html.escape(get_message_text(message))
-        docs = parse_tool_output(content)
-        st.markdown(
-            f"""
-            <div class="msg-row">
-                <div class="avatar ai">🛠</div>
-                <div class="bubble tool">
-                    <div style="font-weight:700; color:#bae6fd;">Retriever Tool</div>
-                    <div class="meta-line">Completed • {get_message_timestamps(thread_id, index + 1)[index].strftime('%H:%M')}</div>
-                    <div class="query">{content[:260] if len(content) > 260 else content}</div>
-                </div>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        if docs:
-            with st.expander("View retrieved sources", expanded=False):
-                for doc in docs:
-                    st.markdown(
-                        f"""
-                        <div class="source-card">
-                            <strong>{html.escape(doc['filename'])}</strong><br/>
-                            <span style="color:#94a3b8;">{html.escape(doc['source'])}</span>
-                            <div class="snippet">{html.escape(doc['snippet'])}</div>
-                        </div>
-                        """,
-                        unsafe_allow_html=True,
-                    )
-        return
-
-    content = html.escape(get_message_text(message))
-    timestamp = get_message_timestamps(thread_id, index + 1)[index].strftime("%H:%M")
+def render_tool_pill(doc_count: int, elapsed: Any = None, running: bool = False) -> None:
+    label = "Searching knowledge base..." if running else "Searched knowledge base"
+    bits = []
+    if not running:
+        bits.append(f"{doc_count} source{'s' if doc_count != 1 else ''}")
+    if elapsed is not None:
+        bits.append(f"{elapsed}s")
+    meta = "".join(f'<span class="sep">•</span><span>{html.escape(b)}</span>' for b in bits)
+    pill_class = "tool-pill running" if running else "tool-pill"
     st.markdown(
-        f"""
-        <div class="msg-row">
-            <div class="avatar ai">AI</div>
-            <div class="bubble ai">
-                {content}
-                <div class="meta-line">
-                    <span>{timestamp}</span>
-                    <span>•</span>
-                    <span>Response ready</span>
-                </div>
-            </div>
-        </div>
-        """,
+        f'<div class="tool-pill-row"><div class="{pill_class}"><span class="dot"></span>'
+        f'<span>🔍 {label}</span>{meta}</div></div>',
         unsafe_allow_html=True,
     )
 
-    if st.button("📋 Copy", key=f"copy-{thread_id}-{index}", use_container_width=False):
-        st.session_state.last_copied = get_message_text(message)
-        st.toast("Response copied")
+
+def render_message(message: Any, thread_id: str, index: int) -> None:
+    if isinstance(message, HumanMessage):
+        with st.chat_message("user", avatar="🧑"):
+            st.markdown(get_message_text(message))
+        return
+
+    if isinstance(message, ToolMessage):
+        content = get_message_text(message)
+        docs = parse_tool_output(content)
+        with st.chat_message("assistant", avatar="🛠️"):
+            render_tool_pill(len(docs))
+            if docs:
+                with st.expander("View sources", expanded=False):
+                    for doc in docs:
+                        st.markdown(
+                            f"""**{doc['filename']}**  
+:gray[{doc['source']}]  
+{doc['snippet']}""",
+                        )
+        return
+
+    timestamp = get_message_timestamps(thread_id, index + 1)[index].strftime("%H:%M")
+    with st.chat_message("assistant", avatar="🤖"):
+        st.markdown(get_message_text(message))
+        st.markdown(f'<div class="msg-meta">{timestamp} · Response ready</div>', unsafe_allow_html=True)
+        if st.button("📋 Copy", key=f"copy-{thread_id}-{index}"):
+            st.session_state.last_copied = get_message_text(message)
+            st.toast("Response copied")
 
 
 def render_tool_cards(tool_cards: List[Dict[str, Any]]) -> None:
     for tool_card in tool_cards:
-        st.markdown(
-            f"""
-            <div class="tool-card">
-                <h4>🛠 {html.escape(tool_card['name'])}</h4>
-                <div class="status">{html.escape(tool_card['status'])}</div>
-                <div class="query"><strong>Query</strong><br/>{html.escape(tool_card['query'])}</div>
-                {f'<div class="query"><strong>Documents Retrieved</strong><br/>{tool_card["documents"]}</div>' if tool_card.get('documents') else ''}
-                {f'<div class="meta-line">Execution time: {tool_card["elapsed"]}s</div>' if tool_card.get('elapsed') is not None else ''}
-            </div>
-            """,
-            unsafe_allow_html=True,
+        is_running = tool_card["status"] == "Running..."
+        render_tool_pill(
+            doc_count=tool_card.get("doc_count") or 0,
+            elapsed=tool_card.get("elapsed"),
+            running=is_running,
         )
+        if not is_running and tool_card.get("docs"):
+            with st.expander("View sources", expanded=False):
+                for doc in tool_card["docs"]:
+                    st.markdown(
+                        f"""**{doc['filename']}**  
+:gray[{doc['source']}]  
+{doc['snippet']}""",
+                    )
 
 
 def stream_response(prompt: str, thread_id: str) -> Dict[str, Any]:
@@ -395,7 +371,8 @@ def stream_response(prompt: str, thread_id: str) -> Dict[str, Any]:
     status_label = "🧠 Thinking..."
 
     status_placeholder = st.empty()
-    response_placeholder = st.empty()
+    chat_container = st.chat_message("assistant", avatar="🤖")
+    response_placeholder = chat_container.empty()
 
     try:
         for event in chatbot.stream(
@@ -417,11 +394,11 @@ def stream_response(prompt: str, thread_id: str) -> Dict[str, Any]:
                             None,
                         )
                         if existing is not None:
+                            docs = parse_tool_output(get_message_text(message))
                             existing["status"] = "✅ Completed"
                             existing["elapsed"] = round(time.perf_counter() - existing["started_at"], 2)
-                            existing["documents"] = "<br/>".join(
-                                f"• {doc['filename']}" for doc in parse_tool_output(get_message_text(message))
-                            )
+                            existing["doc_count"] = len(docs)
+                            existing["docs"] = docs
                         status_label = "✅ Documents Retrieved"
                     elif isinstance(message, AIMessage):
                         if getattr(message, "tool_calls", None):
@@ -432,35 +409,28 @@ def stream_response(prompt: str, thread_id: str) -> Dict[str, Any]:
                                         "name": "Retriever Tool",
                                         "status": "Running...",
                                         "query": prompt,
-                                        "documents": "",
+                                        "doc_count": None,
+                                        "docs": [],
                                         "started_at": time.perf_counter(),
                                     }
                                 )
                         elif isinstance(message.content, str) and message.content.strip():
                             assistant_response += message.content
 
-            status_placeholder.markdown(
-                f"""
-                <div class="typing-indicator">
-                    <span class="typing-dot"></span>
-                    <span class="typing-dot"></span>
-                    <span class="typing-dot"></span>
-                    <span>{html.escape(status_label)}</span>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
-
             if tool_cards:
-                render_tool_cards(tool_cards)
-
-            if assistant_response:
-                response_placeholder.markdown(
-                    f"""
-                    <div class="bubble ai">{html.escape(assistant_response)}</div>
-                    """,
+                with chat_container:
+                    render_tool_cards(tool_cards)
+                status_placeholder.empty()
+            else:
+                status_placeholder.markdown(
+                    f'<div class="typing-indicator"><span class="typing-dot"></span>'
+                    f'<span class="typing-dot"></span><span class="typing-dot"></span>'
+                    f'<span>{html.escape(status_label)}</span></div>',
                     unsafe_allow_html=True,
                 )
+
+            if assistant_response:
+                response_placeholder.markdown(assistant_response)
 
         elapsed = round(time.perf_counter() - start_time, 2)
         st.session_state.last_response_meta[thread_id] = {"elapsed": elapsed, "tools": len(tool_cards)}
@@ -500,26 +470,25 @@ with st.sidebar:
     st.caption("Current Thread ID")
     st.code(st.session_state.current_thread, language=None)
     st.caption("Status")
-    st.markdown('<div class="status-pill">● Online</div>', unsafe_allow_html=True)
+    st.markdown('<div class="status-pill"><span class="dot"></span>Online</div>', unsafe_allow_html=True)
     st.caption("Database")
     st.code("langgraph_checkpoints.db", language=None)
     st.caption("Model")
     st.code(getattr(llm, "model_name", getattr(llm, "model", "llama-3.1-8b-instant")), language=None)
 
 
-left, right = st.columns([7, 2])
-with left:
-    st.markdown(
-        """
-        <div class="app-header">
-            <h2 style="margin:0;">🤖 Enterprise HR Assistant</h2>
-            <div style="color:#94a3b8; margin-top:0.25rem;">LangGraph • Groq • ChromaDB • SQLite</div>
+st.markdown(
+    """
+    <div class="app-header">
+        <div class="title-block">
+            <h2>🤖 Enterprise HR Assistant</h2>
+            <div class="subtitle">LangGraph • Groq • ChromaDB • SQLite</div>
         </div>
-        """,
-        unsafe_allow_html=True,
-    )
-with right:
-    st.markdown('<div class="status-pill">● Connected</div>', unsafe_allow_html=True)
+        <div class="status-pill"><span class="dot"></span>Connected</div>
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
 
 
 thread_id = st.session_state.current_thread
