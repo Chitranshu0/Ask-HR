@@ -32,9 +32,10 @@ Long-term  : Separate SQLite DB (askhr_memory.db) holding the thread
 import os
 import time
 from datetime import datetime
-from typing import Annotated, Any, Dict, List, Optional, TypedDict
+from typing import Annotated, Any, Dict, List, Optional, Literal
 
 from dotenv import load_dotenv
+from pydantic import BaseModel, Field
 
 from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, SystemMessage
 from langchain_core.tools import tool
@@ -55,7 +56,7 @@ load_dotenv(override=True)
 # Config
 # --------------------------------------------------------------------------- #
 LLM_MODEL = os.getenv("ASKHR_LLM_MODEL", "llama-3.1-8b-instant")
-LLM_TEMPERATURE = float(os.getenv("ASKHR_LLM_TEMPERATURE", "0.0")) # Lowered to 0.0 for stable tool calling
+LLM_TEMPERATURE = float(os.getenv("ASKHR_LLM_TEMPERATURE", "0.0"))
 LLM_MAX_TOKENS = int(os.getenv("ASKHR_LLM_MAX_TOKENS", "1200"))
 
 EMBEDDING_MODEL = os.getenv("ASKHR_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
@@ -67,16 +68,34 @@ VECTOR_DB_DIR = os.getenv("ASKHR_VECTOR_DB_DIR", "AgenticHR/RAG_pipeline/PolicyV
 # --------------------------------------------------------------------------- #
 class ChatState(TypedDict):
     messages: Annotated[list, add_messages]
+    # Track evaluation and debugging attributes natively
+    last_context: str = ""
+    retry_count: int = 0
 
 
 # --------------------------------------------------------------------------- #
-# LLM
+# Structured Output Schema for Evaluator
+# --------------------------------------------------------------------------- #
+class GroundednessGrade(BaseModel):
+    binary_score: str = Field(
+        description="Is the answer strictly based on and grounded in the retrieved context? Answer 'yes' or 'no'."
+    )
+    reason: str = Field(
+        description="A clear one-sentence reason for your decision."
+    )
+
+
+# --------------------------------------------------------------------------- #
+# LLM & Evaluator Init
 # --------------------------------------------------------------------------- #
 llm = ChatGroq(
     model=LLM_MODEL,
     temperature=LLM_TEMPERATURE,
     max_tokens=LLM_MAX_TOKENS,
 )
+
+# Leverage built-in structured formatting for Llama models
+evaluator_llm = llm.with_structured_output(GroundednessGrade)
 
 
 # --------------------------------------------------------------------------- #
@@ -98,14 +117,14 @@ def get_vector_db():
     return _vector_db
 
 
-@tool
-def retriever_tool(query: str, k: int = 5, search_type: str = "mmr") -> str:
+@tool(response_format="content_and_artifact")
+def retriever_tool(query: str, k: int = 5, search_type: str = "mmr") -> tuple[str, str]:
     """
-    Retriever the content from the vector db
+    Retrieve information from corporate policies and employee handbooks.
     """
     vector_db = get_vector_db()
     if vector_db is None:
-        return "The knowledge base is temporarily unavailable. Please try again shortly."
+        return "The knowledge base is temporarily unavailable. Please try again shortly.", ""
 
     retriever = vector_db.as_retriever(
         search_type=search_type,
@@ -114,12 +133,15 @@ def retriever_tool(query: str, k: int = 5, search_type: str = "mmr") -> str:
     docs = retriever.invoke(query)
 
     if not docs:
-        return "No relevant documents found."
+        return "No relevant documents found.", ""
 
-    return "\n\n".join(
+    context_str = "\n\n".join(
         f"Source: {list(doc.metadata.get('source', 'Unknown').split('/'))[-1].split('.')[0]}\nContent: {doc.page_content}"
         for doc in docs
     )
+    
+    # Return both formatted string for chat_node and context string as artifact for evaluation state
+    return context_str, context_str
 
 
 # --------------------------------------------------------------------------- #
@@ -151,13 +173,12 @@ tools = [retriever_tool, request_hr_approval]
 llm_with_tools = llm.bind_tools(tools)
 tool_node = ToolNode(tools)
 
-# Cleaned up prompt to prevent Llama formatting leakage
 CHAT_SYSTEM_PROMPT = SystemMessage(
     content="""You are Ask-HR, an internal corporate HR assistant. 
 
 Your job is to answer questions by calling tools or replying directly based on tool outputs.
 
-1. For informational questions (e.g., company identity, company name, policy details, leave balance rules, notice period, holidays, benefits, timings), you MUST execute 'retriever_tool'.
+1. For informational questions (e.g., company identity, policy details, leave rules, notices, holidays, benefits), you MUST execute 'retriever_tool'.
 2. For action requests needing human decision-making (e.g., leave requests, resignation, salary changes), call 'request_hr_approval'.
 
 Never fabricate company guidelines. When tools return information, summarize it naturally for the employee."""
@@ -165,24 +186,73 @@ Never fabricate company guidelines. When tools return information, summarize it 
 
 
 # --------------------------------------------------------------------------- #
-# Core node
+# Nodes
 # --------------------------------------------------------------------------- #
-def chat_node(state: ChatState) -> Dict[str, list]:
+def chat_node(state: ChatState) -> Dict[str, Any]:
     messages = state["messages"]
     
-    # Ensure the System Prompt remains at the head of the message stack
     if not messages or not isinstance(messages[0], SystemMessage):
         messages = [CHAT_SYSTEM_PROMPT] + [m for m in messages if not isinstance(m, SystemMessage)]
     else:
         messages = [CHAT_SYSTEM_PROMPT] + [m for m in messages[1:] if not isinstance(m, SystemMessage)]
 
+    # Update context tracking if retriever_tool was just executed
+    last_context = state.get("last_context", "")
+    if len(messages) > 1 and hasattr(messages[-1], "tool_name") and messages[-1].tool_name == "retriever_tool":
+        last_context = messages[-1].content  # Extract context directly from tool payload
+
     try:
         response = llm_with_tools.invoke(messages)
-    except Exception as exc:
+    except Exception:
         response = AIMessage(
             content="I'm having trouble reaching the assistant right now. Please try again in a moment."
         )
-    return {"messages": [response]}
+        
+    return {"messages": [response], "last_context": last_context}
+
+
+# --------------------------------------------------------------------------- #
+# Evaluator Router Logic
+# --------------------------------------------------------------------------- #
+def evaluate_rag_triad(state: ChatState) -> Literal["chat_node", "tools", END]:
+    messages = state["messages"]
+    last_msg = messages[-1]
+    
+    # Fallback to standard tools condition first (if tool calling is required)
+    if last_msg.tool_calls:
+        return "tools"
+        
+    # If it's a direct message response and context was fetched, run the RAG Groundedness evaluation
+    context = state.get("last_context", "")
+    if context and state.get("retry_count", 0) < 2:
+        print("\n🔎 --- RUNNING GROUNDEDNESS EVALUATION ---")
+        
+        eval_prompt = f"""
+        You are an expert HR Compliance Auditor checking system outputs.
+        Verify if the Assistant's generated response is 100% grounded in and supported by the retrieved Context.
+        If the response introduces facts or statements not found in the Context, fail it.
+
+        Retrieved Context:
+        {context}
+
+        Assistant Response:
+        {last_msg.content}
+        """
+        
+        try:
+            grade: GroundednessGrade = evaluator_llm.invoke([HumanMessage(content=eval_prompt)])
+            print(f"📋 Score: {grade.binary_score.upper()} | Reason: {grade.reason}")
+            
+            if grade.binary_score.lower() == "no":
+                print("⚠️ Hallucination detected! Routing back to chat_node for correction loop...")
+                correction_msg = HumanMessage(
+                    content=f"[SYSTEM NOTIFICATION: Your previous response was flagged as unsafe/unsupported by policy context. Rewrite the final answer sticking strictly to the context below. Do not assume or modify facts.]\nContext: {context}"
+                )
+                return "chat_node"
+        except Exception as e:
+            print(f"❌ Eval execution failed, defaulting to deliverable output. Error: {e}")
+            
+    return END
 
 
 # --------------------------------------------------------------------------- #
@@ -195,7 +265,17 @@ def build_graph(checkpointer):
     graph.add_node("tools", tool_node)
 
     graph.add_edge(START, "chat_node")
-    graph.add_conditional_edges("chat_node", tools_condition)
+    
+    # Route via our custom Self-Correction evaluation layout
+    graph.add_conditional_edges(
+        "chat_node", 
+        evaluate_rag_triad,
+        {
+            "tools": "tools",
+            "chat_node": "chat_node",
+            END: END
+        }
+    )
     graph.add_edge("tools", "chat_node")
 
     return graph.compile(checkpointer=checkpointer)
@@ -210,7 +290,7 @@ if __name__ == "__main__":
 
     checkpointer = MemorySaver()
     chatbot = build_graph(checkpointer)
-    print("\n🤖 Ask-HR (Stateless): How can I help you today? (type 'exit' to quit)\n")
+    print("\n🤖 Ask-HR (Agentic Eval Sandbox): System Active. (type 'exit' to quit)\n")
 
     while True:
         user_input = input("👤 You: ")
