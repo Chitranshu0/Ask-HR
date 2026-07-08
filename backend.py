@@ -32,7 +32,7 @@ Long-term  : Separate SQLite DB (askhr_memory.db) holding the thread
 import os
 import time
 from datetime import datetime
-from typing import Annotated, Any, Dict, List, Optional, Literal
+from typing import Annotated, Any, Dict, List, Optional, Literal, TypedDict
 
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -66,7 +66,7 @@ VECTOR_DB_DIR = os.getenv("ASKHR_VECTOR_DB_DIR", "AgenticHR/RAG_pipeline/PolicyV
 # --------------------------------------------------------------------------- #
 # Graph state
 # --------------------------------------------------------------------------- #
-class ChatState(TypedDict):
+class ChatState(TypedDict): 
     messages: Annotated[list, add_messages]
     # Track evaluation and debugging attributes natively
     last_context: str = ""
@@ -214,7 +214,7 @@ def chat_node(state: ChatState) -> Dict[str, Any]:
 # --------------------------------------------------------------------------- #
 # Evaluator Router Logic
 # --------------------------------------------------------------------------- #
-def evaluate_rag_triad(state: ChatState) -> Literal["chat_node", "tools", END]:
+def evaluate_rag_triad(state: ChatState) -> Literal["chat_node", "tools", END]: #type: ignore
     messages = state["messages"]
     last_msg = messages[-1]
     
