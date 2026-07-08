@@ -29,7 +29,6 @@ Long-term  : Separate SQLite DB (askhr_memory.db) holding the thread
              registry, the HR decision audit log, and cached summaries.
 """
 
-import logging
 import os
 import time
 from datetime import datetime
@@ -44,7 +43,6 @@ from langchain_groq import ChatGroq
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_chroma import Chroma
 
-# Changed to MemorySaver for basic runtime HITL support without disk footprints
 from langgraph.checkpoint.memory import MemorySaver 
 from langgraph.graph import StateGraph, START, END
 from langgraph.graph.message import add_messages
@@ -57,20 +55,11 @@ load_dotenv(override=True)
 # Config
 # --------------------------------------------------------------------------- #
 LLM_MODEL = os.getenv("ASKHR_LLM_MODEL", "llama-3.1-8b-instant")
-LLM_TEMPERATURE = float(os.getenv("ASKHR_LLM_TEMPERATURE", "0.3"))
-LLM_MAX_TOKENS = int(os.getenv("ASKHR_LLM_MAX_TOKENS", "1300"))
+LLM_TEMPERATURE = float(os.getenv("ASKHR_LLM_TEMPERATURE", "0.0")) # Lowered to 0.0 for stable tool calling
+LLM_MAX_TOKENS = int(os.getenv("ASKHR_LLM_MAX_TOKENS", "1200"))
 
 EMBEDDING_MODEL = os.getenv("ASKHR_EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
-VECTOR_DB_DIR = os.getenv("ASKHR_VECTOR_DB_DIR", "RAG_pipeline/PolicyVB")
-
-LLM_MAX_RETRIES = int(os.getenv("ASKHR_LLM_MAX_RETRIES", "2"))
-LLM_RETRY_BACKOFF_SECONDS = float(os.getenv("ASKHR_LLM_RETRY_BACKOFF", "1.5"))
-
-logging.basicConfig(
-    level=os.getenv("ASKHR_LOG_LEVEL", "INFO"),
-    format="%(asctime)s | %(levelname)s | %(name)s | %(message)s",
-)
-logger = logging.getLogger("ask-hr.backend")
+VECTOR_DB_DIR = os.getenv("ASKHR_VECTOR_DB_DIR", "AgenticHR/RAG_pipeline/PolicyVB")
 
 
 # --------------------------------------------------------------------------- #
@@ -90,20 +79,6 @@ llm = ChatGroq(
 )
 
 
-def invoke_llm_with_retry(messages: List[BaseMessage], max_retries: int = LLM_MAX_RETRIES):
-    last_exc: Optional[Exception] = None
-    for attempt in range(max_retries + 1):
-        try:
-            return llm.invoke(messages)
-        except Exception as exc:
-            last_exc = exc
-            wait = LLM_RETRY_BACKOFF_SECONDS * (2 ** attempt)
-            logger.warning("LLM call failed (attempt %s/%s): %s", attempt + 1, max_retries + 1, exc)
-            if attempt < max_retries:
-                time.sleep(wait)
-    raise last_exc
-
-
 # --------------------------------------------------------------------------- #
 # Vector store + retriever tool (RAG)
 # --------------------------------------------------------------------------- #
@@ -115,45 +90,34 @@ def get_vector_db():
     global _embeddings, _vector_db
     if _vector_db is not None:
         return _vector_db
-    try:
-        _embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
-        _vector_db = Chroma(
-            persist_directory=VECTOR_DB_DIR,
-            embedding_function=_embeddings,
-        )
-        logger.info("Vector DB loaded from %s", VECTOR_DB_DIR)
-    except Exception as exc:
-        logger.error("Failed to load vector DB: %s", exc)
-        _vector_db = None
+    _embeddings = HuggingFaceEmbeddings(model_name=EMBEDDING_MODEL)
+    _vector_db = Chroma(
+        persist_directory=VECTOR_DB_DIR,
+        embedding_function=_embeddings,
+    )
     return _vector_db
 
 
 @tool
 def retriever_tool(query: str, k: int = 5, search_type: str = "mmr") -> str:
     """
-    Retrieve relevant HR policy documents from the vector database.
-    Use this for informational questions: policy details, leave balance rules,
-    notice period length, holidays, benefits, timings, etc.
+    Retriever the content from the vector db
     """
     vector_db = get_vector_db()
     if vector_db is None:
         return "The knowledge base is temporarily unavailable. Please try again shortly."
 
-    try:
-        retriever = vector_db.as_retriever(
-            search_type=search_type,
-            search_kwargs={"k": k, "fetch_k": max(50, k * 5)},
-        )
-        docs = retriever.invoke(query)
-    except Exception as exc:
-        logger.error("retriever_tool failed for query=%r: %s", query, exc)
-        return "I couldn't search the knowledge base just now. Please rephrase or try again."
+    retriever = vector_db.as_retriever(
+        search_type=search_type,
+        search_kwargs={"k": k, "fetch_k": max(50, k * 5)},
+    )
+    docs = retriever.invoke(query)
 
     if not docs:
         return "No relevant documents found."
 
     return "\n\n".join(
-        f"Source: {doc.metadata.get('source', 'Unknown')}\nContent: {doc.page_content}"
+        f"Source: {list(doc.metadata.get('source', 'Unknown').split('/'))[-1].split('.')[0]}\nContent: {doc.page_content}"
         for doc in docs
     )
 
@@ -187,18 +151,16 @@ tools = [retriever_tool, request_hr_approval]
 llm_with_tools = llm.bind_tools(tools)
 tool_node = ToolNode(tools)
 
+# Cleaned up prompt to prevent Llama formatting leakage
 CHAT_SYSTEM_PROMPT = SystemMessage(
-    content="""
-You are Ask-HR, an internal HR assistant.
+    content="""You are Ask-HR, an internal corporate HR assistant. 
 
-For informational questions (policy details, leave balance rules, notice
-period length, holidays, benefits, timings, etc.) call retriever_tool.
+Your job is to answer questions by calling tools or replying directly based on tool outputs.
 
-For requests that need a human decision — leave requests, resignation, salary issues, 
-promotions, transfers — call request_hr_approval instead. Pass a short, clear summary.
+1. For informational questions (e.g., company identity, company name, policy details, leave balance rules, notice period, holidays, benefits, timings), you MUST execute 'retriever_tool'.
+2. For action requests needing human decision-making (e.g., leave requests, resignation, salary changes), call 'request_hr_approval'.
 
-Never fabricate policy details. Never approve or reject anything yourself.
-"""
+Never fabricate company guidelines. When tools return information, summarize it naturally for the employee."""
 )
 
 
@@ -207,13 +169,16 @@ Never fabricate policy details. Never approve or reject anything yourself.
 # --------------------------------------------------------------------------- #
 def chat_node(state: ChatState) -> Dict[str, list]:
     messages = state["messages"]
+    
+    # Ensure the System Prompt remains at the head of the message stack
     if not messages or not isinstance(messages[0], SystemMessage):
-        messages = [CHAT_SYSTEM_PROMPT] + list(messages)
+        messages = [CHAT_SYSTEM_PROMPT] + [m for m in messages if not isinstance(m, SystemMessage)]
+    else:
+        messages = [CHAT_SYSTEM_PROMPT] + [m for m in messages[1:] if not isinstance(m, SystemMessage)]
 
     try:
-        response = invoke_llm_with_retry(messages)
+        response = llm_with_tools.invoke(messages)
     except Exception as exc:
-        logger.error("chat_node LLM call failed: %s", exc)
         response = AIMessage(
             content="I'm having trouble reaching the assistant right now. Please try again in a moment."
         )
@@ -243,7 +208,6 @@ if __name__ == "__main__":
     thread_id = "cli_test_001"
     config = {"configurable": {"thread_id": thread_id}}
 
-    # MemorySaver works completely in RAM; state clears when you exit the script
     checkpointer = MemorySaver()
     chatbot = build_graph(checkpointer)
     print("\n🤖 Ask-HR (Stateless): How can I help you today? (type 'exit' to quit)\n")

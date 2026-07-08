@@ -10,9 +10,10 @@ from typing import Any, Dict, List
 import streamlit as st
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
 from langgraph.checkpoint.memory import MemorySaver
+from langgraph.types import Command
 
-# Make sure this matches your project package structure
-from AgenticHR.chatbot import build_graph, llm
+# Importing directly from backend.py as per your project layout
+from backend import build_graph, llm
 
 st.set_page_config(
     page_title="Enterprise HR Assistant",
@@ -129,22 +130,6 @@ st.markdown(
     .tool-pill .sep {
         color: rgba(191, 219, 254, 0.4);
     }
-    .source-card {
-        border-left: 3px solid #60a5fa;
-        padding: 0.6rem 0.7rem;
-        margin-top: 0.5rem;
-        border-radius: 10px;
-        background: rgba(15, 23, 42, 0.52);
-    }
-    .source-card strong {
-        color: #f8fafc;
-    }
-    .source-card .snippet {
-        color: #cbd5e1;
-        font-size: 0.9rem;
-        margin-top: 0.25rem;
-        white-space: pre-wrap;
-    }
     .typing-indicator {
         display: inline-flex;
         gap: 0.25rem;
@@ -185,7 +170,6 @@ st.markdown(
 
 @st.cache_resource(show_spinner=False)
 def load_graph() -> Any:
-    # MemorySaver is globally created and cached within Streamlit's resource runtime context
     saver = MemorySaver()
     return build_graph(saver)
 
@@ -297,20 +281,30 @@ def parse_tool_output(tool_text: str) -> List[Dict[str, Any]]:
     return docs
 
 
-def render_tool_pill(doc_count: int, elapsed: Any = None, running: bool = False) -> None:
-    label = "Searching knowledge base..." if running else "Searched knowledge base"
-    bits = []
-    if not running:
-        bits.append(f"{doc_count} source{'s' if doc_count != 1 else ''}")
-    if elapsed is not None:
-        bits.append(f"{elapsed}s")
-    meta = "".join(f'<span class="sep">•</span><span>{html.escape(b)}</span>' for b in bits)
+def render_tool_pill(label: str, details: str = "", running: bool = False) -> None:
     pill_class = "tool-pill running" if running else "tool-pill"
+    meta = f'<span class="sep">•</span><span>{html.escape(details)}</span>' if details else ""
     st.markdown(
         f'<div class="tool-pill-row"><div class="{pill_class}"><span class="dot"></span>'
-        f'<span>🔍 {label}</span>{meta}</div></div>',
+        f'<span>{html.escape(label)}</span>{meta}</div></div>',
         unsafe_allow_html=True,
     )
+
+
+def handle_hitl_submission(action: str, comment: str, config: dict):
+    """Resumes the graph with the human HR choice."""
+    st.session_state.processing = True
+    chatbot.invoke(
+        Command(
+            resume={
+                "approved": action == "approve",
+                "comment": comment if comment else ("Approved" if action == "approve" else "Rejected"),
+            }
+        ),
+        config=config,
+    )
+    st.session_state.processing = False
+    st.rerun()
 
 
 def render_message(message: Any, thread_id: str, index: int) -> None:
@@ -321,15 +315,17 @@ def render_message(message: Any, thread_id: str, index: int) -> None:
 
     if isinstance(message, ToolMessage):
         content = get_message_text(message)
-        docs = parse_tool_output(content)
-        with st.chat_message("assistant", avatar="🛠️"):
-            render_tool_pill(len(docs))
-            if docs:
-                with st.expander("View sources", expanded=False):
-                    for doc in docs:
-                        st.markdown(
-                            f"**{doc['filename']}** \n:gray[{doc['source']}]  \n{doc['snippet']}",
-                        )
+        if "APPROVED" in content or "REJECTED" in content:
+            with st.chat_message("assistant", avatar="⚖️"):
+                render_tool_pill("HR Action Processed", content.replace("\n", " | "))
+        else:
+            docs = parse_tool_output(content)
+            with st.chat_message("assistant", avatar="🛠️"):
+                render_tool_pill("Searched Knowledge Base", f"{len(docs)} sources")
+                if docs:
+                    with st.expander("View sources", expanded=False):
+                        for doc in docs:
+                            st.markdown(f"**{doc['filename']}** \n:gray[{doc['source']}]  \n{doc['snippet']}")
         return
 
     timestamp = get_message_timestamps(thread_id, index + 1)[index].strftime("%H:%M")
@@ -345,21 +341,18 @@ def render_tool_cards(tool_cards: List[Dict[str, Any]]) -> None:
     for tool_card in tool_cards:
         is_running = tool_card["status"] == "Running..."
         render_tool_pill(
-            doc_count=tool_card.get("doc_count") or 0,
-            elapsed=tool_card.get("elapsed"),
+            label=tool_card["name"],
+            details=f"Elapsed: {tool_card.get('elapsed', 0)}s" if not is_running else "",
             running=is_running,
         )
         if not is_running and tool_card.get("docs"):
             with st.expander("View sources", expanded=False):
                 for doc in tool_card["docs"]:
-                    st.markdown(
-                        f"**{doc['filename']}** \n:gray[{doc['source']}]  \n{doc['snippet']}",
-                    )
+                    st.markdown(f"**{doc['filename']}** \n:gray[{doc['source']}]  \n{doc['snippet']}")
 
 
-def stream_response(prompt: str, thread_id: str) -> Dict[str, Any]:
+def stream_response(prompt: str, thread_id: str) -> None:
     config = get_thread_config(thread_id)
-    start_time = time.perf_counter()
     tool_cards: List[Dict[str, Any]] = []
     assistant_response = ""
     status_label = "🧠 Thinking..."
@@ -379,35 +372,18 @@ def stream_response(prompt: str, thread_id: str) -> Dict[str, Any]:
                     continue
                 for message in update.get("messages", []):
                     if isinstance(message, ToolMessage):
-                        existing = next(
-                            (
-                                card
-                                for card in tool_cards
-                                if card["name"] == "Retriever Tool" and card["status"] == "Running..."
-                            ),
-                            None,
-                        )
-                        if existing is not None:
+                        existing = next((c for c in tool_cards if c["status"] == "Running..."), None)
+                        if existing:
                             docs = parse_tool_output(get_message_text(message))
                             existing["status"] = "✅ Completed"
-                            existing["elapsed"] = round(time.perf_counter() - existing["started_at"], 2)
-                            existing["doc_count"] = len(docs)
                             existing["docs"] = docs
-                        status_label = "✅ Documents Retrieved"
+                        status_label = "✅ Context Retrieved"
                     elif isinstance(message, AIMessage):
                         if getattr(message, "tool_calls", None):
-                            status_label = "🔎 Searching Knowledge Base..."
-                            if not any(card["name"] == "Retriever Tool" for card in tool_cards):
-                                tool_cards.append(
-                                    {
-                                        "name": "Retriever Tool",
-                                        "status": "Running...",
-                                        "query": prompt,
-                                        "doc_count": None,
-                                        "docs": [],
-                                        "started_at": time.perf_counter(),
-                                    }
-                                )
+                            t_call = message.tool_calls[0]
+                            t_name = "Retriever Tool" if t_call["name"] == "retriever_tool" else "HR Approval Requested"
+                            status_label = f"🔎 Executing {t_name}..."
+                            tool_cards.append({"name": t_name, "status": "Running...", "docs": []})
                         elif isinstance(message.content, str) and message.content.strip():
                             assistant_response += message.content
 
@@ -426,16 +402,8 @@ def stream_response(prompt: str, thread_id: str) -> Dict[str, Any]:
             if assistant_response:
                 response_placeholder.markdown(assistant_response)
 
-        elapsed = round(time.perf_counter() - start_time, 2)
-        st.session_state.last_response_meta[thread_id] = {"elapsed": elapsed, "tools": len(tool_cards)}
-        return {"assistant": assistant_response, "elapsed": elapsed, "tool_cards": tool_cards}
     except Exception as exc:
-        is_dev_mode = os.getenv("APP_ENV", "").lower() in {"dev", "development", "debug"}
-        if is_dev_mode:
-            st.error(f"{exc}\n\n{traceback.format_exc()}")
-        else:
-            st.error("The assistant ran into a problem. Please try again.")
-        return {"assistant": "", "elapsed": round(time.perf_counter() - start_time, 2), "tool_cards": tool_cards}
+        st.error(f"The assistant ran into an unexpected issue: {exc}")
 
 
 with st.sidebar:
@@ -484,8 +452,8 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-
 thread_id = st.session_state.current_thread
+config = get_thread_config(thread_id)
 messages = recover_messages(thread_id)
 rename_thread_if_needed(thread_id, messages)
 
@@ -493,6 +461,27 @@ st.markdown('<div class="chat-shell">', unsafe_allow_html=True)
 for index, message in enumerate(messages):
     render_message(message, thread_id, index)
 st.markdown('</div>', unsafe_allow_html=True)
+
+# Check for human in the loop interruption state
+current_state = chatbot.get_state(config)
+if current_state.next and "__interrupt__" in current_state.metadata:
+    interrupt_value = current_state.values.get("__interrupt__", [None])[0] or current_state.metadata["__interrupt__"][0]
+    
+    st.warning("🚨 **Human-in-the-Loop Approval Required**")
+    st.info(f"**Employee Request:** {interrupt_value.value.get('request', 'Action requested')}")
+    
+    with st.form("hitl_approval_form"):
+        comment_input = st.text_input("Approver Comments / Reason:", placeholder="Optional reason details...")
+        col1, col2 = st.columns(2)
+        with col1:
+            approve_btn = st.form_submit_button("✅ Approve Request", use_container_width=True)
+        with col2:
+            reject_btn = st.form_submit_button("❌ Reject Request", use_container_width=True)
+            
+        if approve_btn:
+            handle_hitl_submission("approve", comment_input, config)
+        elif reject_btn:
+            handle_hitl_submission("reject", comment_input, config)
 
 if st.session_state.get("processing"):
     st.info("Response in progress...")
