@@ -1,19 +1,18 @@
 import html
 import os
 import re
-import sqlite3
 import time
 import traceback
 import uuid
 from datetime import datetime, timedelta
 from typing import Any, Dict, List
- 
+
 import streamlit as st
 from langchain_core.messages import AIMessage, HumanMessage, ToolMessage
-from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.checkpoint.memory import MemorySaver
 
+# Make sure this matches your project package structure
 from AgenticHR.chatbot import build_graph, llm
-
 
 st.set_page_config(
     page_title="Enterprise HR Assistant",
@@ -21,7 +20,6 @@ st.set_page_config(
     layout="wide",
     initial_sidebar_state="expanded",
 )
-
 
 st.markdown(
     """
@@ -187,8 +185,8 @@ st.markdown(
 
 @st.cache_resource(show_spinner=False)
 def load_graph() -> Any:
-    conn = sqlite3.connect("langgraph_checkpoints.db", check_same_thread=False)
-    saver = SqliteSaver(conn)
+    # MemorySaver is globally created and cached within Streamlit's resource runtime context
+    saver = MemorySaver()
     return build_graph(saver)
 
 
@@ -330,9 +328,7 @@ def render_message(message: Any, thread_id: str, index: int) -> None:
                 with st.expander("View sources", expanded=False):
                     for doc in docs:
                         st.markdown(
-                            f"""**{doc['filename']}**  
-:gray[{doc['source']}]  
-{doc['snippet']}""",
+                            f"**{doc['filename']}** \n:gray[{doc['source']}]  \n{doc['snippet']}",
                         )
         return
 
@@ -357,9 +353,7 @@ def render_tool_cards(tool_cards: List[Dict[str, Any]]) -> None:
             with st.expander("View sources", expanded=False):
                 for doc in tool_card["docs"]:
                     st.markdown(
-                        f"""**{doc['filename']}**  
-:gray[{doc['source']}]  
-{doc['snippet']}""",
+                        f"**{doc['filename']}** \n:gray[{doc['source']}]  \n{doc['snippet']}",
                     )
 
 
@@ -446,7 +440,7 @@ def stream_response(prompt: str, thread_id: str) -> Dict[str, Any]:
 
 with st.sidebar:
     st.title("💬 Enterprise HR Assistant")
-    st.caption("Persistent LangGraph threads • SQLite checkpoints")
+    st.caption("In-Memory LangGraph Threads (Stateless Sessions)")
 
     if st.button("➕ New Chat", use_container_width=True, type="primary"):
         thread_id = str(uuid.uuid4())
@@ -471,8 +465,8 @@ with st.sidebar:
     st.code(st.session_state.current_thread, language=None)
     st.caption("Status")
     st.markdown('<div class="status-pill"><span class="dot"></span>Online</div>', unsafe_allow_html=True)
-    st.caption("Database")
-    st.code("langgraph_checkpoints.db", language=None)
+    st.caption("Checkpointing Runtime")
+    st.code("In-Memory (MemorySaver)", language=None)
     st.caption("Model")
     st.code(getattr(llm, "model_name", getattr(llm, "model", "llama-3.1-8b-instant")), language=None)
 
@@ -482,7 +476,7 @@ st.markdown(
     <div class="app-header">
         <div class="title-block">
             <h2>🤖 Enterprise HR Assistant</h2>
-            <div class="subtitle">LangGraph • Groq • ChromaDB • SQLite</div>
+            <div class="subtitle">LangGraph • Groq • ChromaDB • In-Memory Store</div>
         </div>
         <div class="status-pill"><span class="dot"></span>Connected</div>
     </div>
